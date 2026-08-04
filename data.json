@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Test User",
+    "phone": "9999999999",
+    "sponsor": "SP1",
+    "plan": "Level 2",
+    "amount": 500,
+    "commission": "3%",
+    "status": "Payment Pending",
+    "createdAt": "2026-08-04T21:03:22.011Z"
+  }
+]

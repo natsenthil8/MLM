@@ -173,6 +173,19 @@ td {
   gap: 12px;
 }
 
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.summary-item {
+  background: rgba(59, 130, 246, 0.12);
+  border-radius: 12px;
+  padding: 16px;
+}
+
 .tiny {
   color: var(--muted);
   font-size: 0.9rem;

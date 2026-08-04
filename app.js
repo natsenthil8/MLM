@@ -15,18 +15,29 @@ function getMembers() {
   return data ? JSON.parse(data) : [];
 }
 
-function renderRows() {
+async function fetchMembers() {
+  try {
+    const response = await fetch('/api/members');
+    if (!response.ok) {
+      throw new Error('Failed to load members');
+    }
+    return await response.json();
+  } catch (error) {
+    return getMembers();
+  }
+}
+
+function renderRows(members = []) {
   const rows = document.getElementById('memberRows');
   if (!rows) return;
 
-  const members = getMembers();
   if (!members.length) {
     rows.innerHTML = '<tr><td colspan="5">No registrations found.</td></tr>';
     return;
   }
 
   rows.innerHTML = members.map((member) => {
-    const commission = planDetails[member.plan]?.commission || 'N/A';
+    const commission = planDetails[member.plan]?.commission || member.commission || 'N/A';
     return `
       <tr>
         <td>${member.name}</td>
@@ -39,7 +50,39 @@ function renderRows() {
   }).join('');
 }
 
-function routeAdmin() {
+async function fetchSummary() {
+  try {
+    const response = await fetch('/api/summary');
+    if (!response.ok) {
+      throw new Error('Failed to load summary');
+    }
+    return await response.json();
+  } catch (error) {
+    return null;
+  }
+}
+
+function renderSummary(summary) {
+  const summaryBox = document.getElementById('adminSummary');
+  if (!summaryBox || !summary) return;
+
+  summaryBox.innerHTML = `
+    <div class="summary-item">
+      <strong>Total Members</strong>
+      <p>${summary.totalMembers || 0}</p>
+    </div>
+    <div class="summary-item">
+      <strong>Total Amount</strong>
+      <p>₹${summary.totalAmount || 0}</p>
+    </div>
+    <div class="summary-item">
+      <strong>Commission Breakdown</strong>
+      <p>5%: ${summary.commissions?.['5%'] || 0} | 3%: ${summary.commissions?.['3%'] || 0} | 2%: ${summary.commissions?.['2%'] || 0}</p>
+    </div>
+  `;
+}
+
+async function routeAdmin() {
   const adminLoginSection = document.getElementById('adminLogin');
   const adminPanel = document.getElementById('adminPanel');
   const isLoggedIn = sessionStorage.getItem('adminLoggedIn') === 'true';
@@ -48,7 +91,9 @@ function routeAdmin() {
     if (isLoggedIn) {
       adminLoginSection.classList.add('hidden');
       adminPanel.classList.remove('hidden');
-      renderRows();
+      const [members, summary] = await Promise.all([fetchMembers(), fetchSummary()]);
+      renderRows(members);
+      renderSummary(summary);
     } else {
       adminLoginSection.classList.remove('hidden');
       adminPanel.classList.add('hidden');
@@ -77,21 +122,34 @@ function handleJoinForm() {
     updatePaymentAmount(event.target.value);
   });
 
-  form.addEventListener('submit', (event) => {
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(form).entries());
-    const members = getMembers();
-    members.push({
-      ...data,
-      amount: planDetails[data.plan]?.amount || 0,
-      commission: planDetails[data.plan]?.commission || 'N/A',
-      status: 'Payment Pending',
-      createdAt: new Date().toISOString()
-    });
-    saveMembers(members);
-    status.textContent = `Registered successfully for ${data.plan}. Please complete UPI payment using 9025591088@upi.`;
-    form.reset();
-    updatePaymentAmount(planSelect.value);
+
+    try {
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Registration failed');
+      }
+
+      const members = getMembers();
+      members.push({ ...result.member });
+      saveMembers(members);
+
+      status.textContent = `Registered successfully for ${data.plan}. Please complete UPI payment using 9025591088@upi.`;
+      form.reset();
+      updatePaymentAmount(planSelect.value);
+    } catch (error) {
+      status.textContent = error.message || 'Registration failed. Please try again.';
+    }
   });
 }
 
@@ -100,14 +158,26 @@ function handleLoginForm() {
   const loginMessage = document.getElementById('loginMessage');
   if (!loginForm || !loginMessage) return;
 
-  loginForm.addEventListener('submit', (event) => {
+  loginForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(loginForm).entries());
-    if (data.username === 'member' && data.password === 'member123') {
+
+    try {
+      const response = await fetch('/api/member/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Invalid member credentials.');
+      }
+
       loginMessage.textContent = 'Member login successful. Redirecting to registration...';
       window.location.href = 'registration.html';
-    } else {
-      loginMessage.textContent = 'Invalid member credentials.';
+    } catch (error) {
+      loginMessage.textContent = error.message || 'Invalid member credentials.';
     }
   });
 }
@@ -117,16 +187,30 @@ function handleAdminForm() {
   const adminError = document.getElementById('adminError');
   if (!adminForm || !adminError) return;
 
-  adminForm.addEventListener('submit', (event) => {
+  adminForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const data = Object.fromEntries(new FormData(adminForm).entries());
-    if (data.username === adminUser.username && data.password === adminUser.password) {
+
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.message || 'Invalid admin credentials.');
+      }
+
       sessionStorage.setItem('adminLoggedIn', 'true');
       routeAdmin();
       adminError.textContent = '';
       adminForm.reset();
-    } else {
-      adminError.textContent = 'Invalid admin credentials.';
+    } catch (error) {
+      adminError.textContent = error.message || 'Invalid admin credentials.';
     }
   });
 }
@@ -135,7 +219,8 @@ function handleLogout() {
   const logoutBtn = document.getElementById('logoutBtn');
   if (!logoutBtn) return;
 
-  logoutBtn.addEventListener('click', () => {
+  logoutBtn.addEventListener('click', async () => {
+    await fetch('/api/logout', { method: 'POST' });
     sessionStorage.removeItem('adminLoggedIn');
     routeAdmin();
   });
