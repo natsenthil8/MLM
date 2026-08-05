@@ -26,9 +26,8 @@ function getMembers() {
 
 async function fetchMembers() {
   try {
-    const res = await fetch('/api/members', { headers: apiHeaders() })
-    if (!res.ok) throw new Error('Failed to load members')
-    const json = await res.json()
+    // use centralized api wrapper which injects auth token
+    const json = await window.api.get('/api/members')
     // normalize: server returns { members: [...] } while older code expected an array
     if (Array.isArray(json)) return json
     if (json && Array.isArray(json.members)) return json.members
@@ -40,9 +39,7 @@ async function fetchMembers() {
 
 async function fetchSummary() {
   try {
-    const res = await fetch('/api/summary', { headers: apiHeaders() })
-    if (!res.ok) throw new Error('Failed to load summary')
-    const json = await res.json()
+    const json = await window.api.get('/api/summary')
     // normalize server response { count, totalAmount } -> { totalMembers, totalAmount, commissions }
     return {
       totalMembers: json.count ?? json.totalMembers ?? 0,
@@ -149,14 +146,7 @@ function handleJoinForm() {
     const data = Object.fromEntries(new FormData(form).entries())
 
     try {
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.message || 'Registration failed')
+      const result = await window.api.post('/api/register', data)
 
       const members = getMembers()
       members.push({ ...result.member })
@@ -181,14 +171,7 @@ function handleLoginForm() {
     const data = Object.fromEntries(new FormData(loginForm).entries())
 
     try {
-      const response = await fetch('/api/member-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.message || 'Invalid member credentials.')
+      const result = await window.api.post('/api/member-login', data)
 
       loginMessage.textContent = 'Member login successful. Redirecting to registration...'
       // store member token if needed
@@ -210,14 +193,7 @@ function handleAdminForm() {
     const data = Object.fromEntries(new FormData(adminForm).entries())
 
     try {
-      const response = await fetch('/api/admin-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-
-      const result = await response.json()
-      if (!response.ok) throw new Error(result.message || 'Invalid admin credentials.')
+      const result = await window.api.post('/api/admin-login', data)
 
       sessionStorage.setItem('adminToken', result.token)
       sessionStorage.setItem('adminLoggedIn', 'true')
@@ -235,7 +211,11 @@ function handleLogout() {
   if (!logoutBtn) return
 
   logoutBtn.addEventListener('click', async () => {
-    await fetch('/api/logout', { method: 'POST' })
+    try {
+      await window.api.post('/api/logout')
+    } catch (e) {
+      // ignore logout errors
+    }
     sessionStorage.removeItem('adminLoggedIn')
     sessionStorage.removeItem('adminToken')
     routeAdmin()
