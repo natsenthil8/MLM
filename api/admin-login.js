@@ -1,25 +1,39 @@
-const { sendJson, jwt } = require('./_helpers');
-
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+  try {
+    if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' })
 
-  const body = await new Promise((resolve) => {
-    let buf = '';
-    req.on('data', (c) => buf += c);
-    req.on('end', () => {
-      try { resolve(JSON.parse(buf || '{}')); } catch { resolve({}); }
-    });
-  });
+    const { username, password } = req.body || {}
+    if (!username || !password) return res.status(400).json({ message: 'Missing credentials' })
 
-  const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD;
+    // Required env checks
+    const {
+      ADMIN_USERNAME,
+      ADMIN_PASSWORD,
+      JWT_SECRET,
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY,
+    } = process.env
 
-  if (!password) return sendJson(res, 500, { error: 'ADMIN_PASSWORD not configured on server' });
+    if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !JWT_SECRET) {
+      console.error('Missing ADMIN_USERNAME, ADMIN_PASSWORD or JWT_SECRET env var')
+      return res.status(500).json({ message: 'Server not configured' })
+    }
 
-  if (body.username !== username || body.password !== password) {
-    return sendJson(res, 401, { error: 'Invalid credentials' });
+    // Optional: ensure supabase envs set if you plan to use it server-side
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('Supabase env not set — Supabase client will not be available')
+    }
+
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+      return res.status(401).json({ message: 'Invalid credentials' })
+    }
+
+    const jwt = require('jsonwebtoken')
+    const token = jwt.sign({ role: 'admin', user: username }, JWT_SECRET, { expiresIn: '8h' })
+
+    return res.json({ token })
+  } catch (err) {
+    console.error('admin-login error:', err && err.stack ? err.stack : err)
+    return res.status(500).json({ message: 'Internal server error' })
   }
-
-  const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '8h' });
-  return sendJson(res, 200, { token });
-};
+}
