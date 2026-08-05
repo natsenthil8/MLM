@@ -1,25 +1,68 @@
-const { sendJson, jwt } = require('./_helpers');
+const crypto = require('crypto')
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
+  try {
+    if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' })
 
-  const body = await new Promise((resolve) => {
-    let buf = '';
-    req.on('data', (c) => buf += c);
-    req.on('end', () => {
-      try { resolve(JSON.parse(buf || '{}')); } catch { resolve({}); }
-    });
-  });
+    // Basic content-type guard
+    if (req.headers && req.headers['content-type'] && !req.headers['content-type'].includes('application/json')) {
+      // still attempt to parse body, but warn
+      console.warn('admin-login: unexpected content-type', req.headers['content-type'])
+    }
 
-  const username = process.env.ADMIN_USERNAME || 'admin';
-  const password = process.env.ADMIN_PASSWORD;
+    const { username, password } = req.body || {}
+    if (!username || !password) return res.status(400).json({ message: 'Missing credentials' })
 
-  if (!password) return sendJson(res, 500, { error: 'ADMIN_PASSWORD not configured on server' });
+    // Required env checks
+    const {
+      ADMIN_USERNAME,
+      ADMIN_PASSWORD,
+      JWT_SECRET,
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY,
+    } = process.env
 
-  if (body.username !== username || body.password !== password) {
-    return sendJson(res, 401, { error: 'Invalid credentials' });
+    if (!ADMIN_USERNAME || !ADMIN_PASSWORD || !JWT_SECRET) {
+      console.error('Missing ADMIN_USERNAME, ADMIN_PASSWORD or JWT_SECRET env var')
+      return res.status(500).json({ message: 'Server not configured' })
+    }
+
+    // Optional: ensure supabase envs set if you plan to use it server-side
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.warn('Supabase env not set — Supabase client will not be available')
+    }
+
+    // Safe, constant-time comparison to mitigate timing attacks
+    const safeCompare = (a, b) => {
+      try {
+        const bufA = Buffer.from(String(a))
+        const bufB = Buffer.from(String(b))
+        if (bufA.length !== bufB.length) return false
+        return crypto.timingSafeEqual(bufA, bufB)
+      } catch (e) {
+        return false
+      }
+    }
+
+    if (!safeCompare(username, ADMIN_USERNAME) || !safeCompare(password, ADMIN_PASSWORD)) {
+      // Do not reveal which field was wrong
+      return res.status(401).json({ message: 'Invalid credentials' })
+    }
+
+    const jwt = require('jsonwebtoken')
+
+    // Basic JWT_SECRET length check to catch misconfiguration early
+    if (String(JWT_SECRET).length < 8) {
+      console.error('JWT_SECRET is too short — use a stronger secret')
+      return res.status(500).json({ message: 'Server not configured' })
+    }
+
+    const token = jwt.sign({ role: 'admin', user: username }, JWT_SECRET, { expiresIn: '8h' })
+
+    // Return token (do not leak any sensitive info)
+    return res.json({ token })
+  } catch (err) {
+    console.error('admin-login error:', err && err.stack ? err.stack : err)
+    return res.status(500).json({ message: 'Internal server error' })
   }
-
-  const token = jwt.sign({ role: 'admin' }, process.env.JWT_SECRET, { expiresIn: '8h' });
-  return sendJson(res, 200, { token });
-};
+}
