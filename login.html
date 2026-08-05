@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login | MLM Savings Scheme</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div><h1>Member Login</h1></div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="login.html">Login</a>
+        <a href="registration.html">Registration</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container section">
+    <section class="card login-card">
+      <h2>Login</h2>
+      <p>Demo user login for the membership portal.</p>
+      <form id="loginForm">
+        <label>
+          Username
+          <input type="text" name="username" required placeholder="Enter username" />
+        </label>
+        <label>
+          Password
+          <input type="password" name="password" required placeholder="Enter password" />
+        </label>
+        <button type="submit" class="btn primary">Login</button>
+      </form>
+      <div id="loginMessage" class="status-box">Demo login: member / member123</div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

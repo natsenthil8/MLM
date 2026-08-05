@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Registration | MLM Savings Scheme</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div><h1>Registration</h1></div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="login.html">Login</a>
+        <a href="registration.html">Registration</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container section">
+    <div class="form-grid">
+      <section class="card">
+        <h2>Join the Scheme</h2>
+        <form id="joinForm">
+          <label>
+            Full Name
+            <input type="text" name="name" required placeholder="Enter your name" />
+          </label>
+          <label>
+            Phone Number
+            <input type="tel" name="phone" required placeholder="Enter phone number" />
+          </label>
+          <label>
+            Sponsor ID
+            <input type="text" name="sponsor" placeholder="Sponsor reference" />
+          </label>
+          <label>
+            Plan
+            <select id="planSelect" name="plan" required>
+              <option value="Level 1">Level 1 - ₹100 - 5%</option>
+              <option value="Level 2">Level 2 - ₹500 - 3%</option>
+              <option value="Level 3">Level 3 - ₹1000 - 2%</option>
+            </select>
+          </label>
+          <button type="submit" class="btn primary">Register</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Payment</h2>
+        <p>Complete your payment using the UPI ID below.</p>
+        <a class="btn secondary" id="upiPayButton" href="upi://pay?pa=9025591088@upi&pn=MLM%20Scheme&am=100&cu=INR&tn=MLM%20Enrollment">Pay via UPI</a>
+        <div id="statusMessage" class="status-box">No registration yet.</div>
+      </section>
+    </div>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

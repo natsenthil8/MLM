@@ -1,0 +1,23 @@
+/* CSS content from styles.css */
+:root {
+  --bg: #0f172a;
+  --panel: #111827;
+  --text: #e5eefc;
+  --muted: #9fb0d0;
+  --accent: #22c55e;
+  --accent-2: #3b82f6;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #08111f, #13213c);
+  color: var(--text);
+}
+
+/* rest omitted for brevity in this push content */

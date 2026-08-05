@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MLM Admin</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div>
+        <h1>Admin Section</h1>
+      </div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="#adminLogin">Login</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container admin-main">
+    <section id="adminLogin" class="card login-card">
+      <h2>Admin Login</h2>
+      <p>Use the demo credentials below to access the admin records.</p>
+      <p><strong>Username:</strong> admin<br /><strong>Password:</strong> admin123</p>
+      <form id="adminForm">
+        <label>
+          Username
+          <input type="text" name="username" required placeholder="Enter admin username" />
+        </label>
+        <label>
+          Password
+          <input type="password" name="password" required placeholder="Enter admin password" />
+        </label>
+        <button type="submit" class="btn primary">Login</button>
+      </form>
+      <div id="adminError" class="status-box error"></div>
+    </section>
+
+    <section id="adminPanel" class="card hidden">
+      <div class="panel-head">
+        <h2>Member Register</h2>
+        <button id="logoutBtn" class="btn secondary">Logout</button>
+      </div>
+      <div id="adminSummary" class="summary-grid"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Sponsor</th>
+              <th>Plan</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="memberRows"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

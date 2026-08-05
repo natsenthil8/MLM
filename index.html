@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MLM Savings Scheme</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container nav">
+      <div>
+        <h1>MLM Savings Scheme</h1>
+      </div>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="about.html">About</a>
+        <a href="login.html">Login</a>
+        <a href="registration.html">Registration</a>
+        <a href="admin.html">Admin</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="badge">Official UPI Payment</span>
+          <h2>Grow your savings through a trusted MLM network.</h2>
+          <p>
+            Join our savings scheme, grow your network, and collect payouts through an easy
+            UPI-enabled registration flow.
+          </p>
+          <div class="actions">
+            <a href="registration.html" class="btn primary">Join Now</a>
+            <a class="btn secondary" id="upiPayButton" href="upi://pay?pa=9025591088@upi&pn=MLM%20Scheme&am=100&cu=INR&tn=MLM%20Enrollment">Pay via UPI</a>
+          </div>
+        </div>
+        <div class="card highlight-card">
+          <h3>UPI Details</h3>
+          <p><strong>UPI ID:</strong> 9025591088@upi</p>
+          <p><strong>Simple Method:</strong> Capture your registration details, then open UPI payment.</p>
+          <p class="tiny">Use a UPI-supported application such as Google Pay, PhonePe, or Paytm.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="plans" class="section">
+      <div class="container">
+        <h3>Membership Plans</h3>
+        <div class="grid-3">
+          <article class="card">
+            <h4>Level 1</h4>
+            <p>Join with ₹100 and earn 5% commission.</p>
+            <strong>₹100</strong>
+          </article>
+          <article class="card">
+            <h4>Level 2</h4>
+            <p>Join with ₹500 and earn 3% commission.</p>
+            <strong>₹500</strong>
+          </article>
+          <article class="card">
+            <h4>Level 3</h4>
+            <p>Join with ₹1000 and earn 2% commission.</p>
+            <strong>₹1000</strong>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h3>Commission Structure</h3>
+        <div class="grid-3">
+          <article class="card">
+            <h4>5%</h4>
+            <p>For ₹100 joining plan.</p>
+          </article>
+          <article class="card">
+            <h4>3%</h4>
+            <p>For ₹500 joining plan.</p>
+          </article>
+          <article class="card">
+            <h4>2%</h4>
+            <p>For ₹1000 joining plan.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="register" class="section alt">
+      <div class="container form-grid">
+        <div class="card">
+          <h3>Join the Scheme</h3>
+          <form id="joinForm">
+            <label>
+              Full Name
+              <input type="text" name="name" required placeholder="Enter your name" />
+            </label>
+            <label>
+              Phone Number
+              <input type="tel" name="phone" required placeholder="Enter phone number" />
+            </label>
+            <label>
+              Sponsor ID
+              <input type="text" name="sponsor" placeholder="Sponsor reference" />
+            </label>
+            <label>
+              Plan
+              <select id="planSelect" name="plan" required>
+                <option value="Level 1">Level 1 - ₹100 - 5%</option>
+                <option value="Level 2">Level 2 - ₹500 - 3%</option>
+                <option value="Level 3">Level 3 - ₹1000 - 2%</option>
+              </select>
+            </label>
+            <button type="submit" class="btn primary">Register</button>
+          </form>
+        </div>
+        <div class="card">
+          <h3>Payment Steps</h3>
+          <ol>
+            <li>Fill your registration form.</li>
+            <li>Choose a membership plan.</li>
+            <li>Tap the UPI payment button.</li>
+            <li>Confirm the payment in your UPI app.</li>
+          </ol>
+          <div id="statusMessage" class="status-box">No registration yet.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
