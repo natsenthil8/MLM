@@ -1,15 +1,8 @@
 {
-  "name": "mlm-site",
+  "name": "mlm-vercel-api",
   "version": "1.0.0",
-  "description": "Simple MLM demo site",
-  "main": "server.js",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "private": true,
   "dependencies": {
-    "@vercel/speed-insights": "^2.0.0",
-    "bcryptjs": "^2.4.3",
-    "express": "^4.18.2",
-    "express-session": "^1.17.3"
+    "jsonwebtoken": "^8.5.1"
   }
 }

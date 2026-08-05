@@ -1,22 +1,31 @@
-const { createClient } = require('@supabase/supabase-js')
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+const { sendJson, supabaseRequest } = require('./_helpers');
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') return res.status(405).json({ message: 'Method not allowed' })
-  const { name, phone, sponsor, plan } = req.body || {}
-  if (!name || !phone || !plan) return res.status(400).json({ message: 'Name, phone and plan are required.' })
+  if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
 
-  const amountMap = { 'Level 1': 100, 'Level 2': 500, 'Level 3': 1000 }
-  const commissionMap = { 'Level 1': '5%', 'Level 2': '3%', 'Level 3': '2%' }
-  const amount = amountMap[plan] || 0
-  const commission = commissionMap[plan] || 'N/A'
+  const body = await new Promise((resolve) => {
+    let buf = '';
+    req.on('data', (c) => buf += c);
+    req.on('end', () => {
+      try { resolve(JSON.parse(buf || '{}')); } catch { resolve({}); }
+    });
+  });
 
-  const { data, error } = await supabase
-    .from('members')
-    .insert([{ name, phone, sponsor: sponsor || null, plan, amount, commission, status: 'Payment Pending' }])
-    .select()
+  const required = ['name', 'phone', 'plan'];
+  for (const k of required) if (!body[k]) return sendJson(res, 400, { error: `${k} is required` });
 
-  if (error) return res.status(500).json({ message: error.message })
-  return res.status(201).json({ member: data[0], message: 'Registration saved successfully.' })
-}
+  const insert = {
+    name: body.name,
+    phone: body.phone,
+    sponsor: body.sponsor || null,
+    plan: body.plan,
+    amount: body.amount || null,
+    commission: body.commission || null,
+    status: body.status || 'active'
+  };
+
+  const { status, data } = await supabaseRequest('POST', '/members', insert);
+  if (status !== 201 && status !== 200) return sendJson(res, 500, { error: 'Failed to create member', detail: data });
+
+  return sendJson(res, 201, { member: data });
+};
