@@ -28,7 +28,11 @@ async function fetchMembers() {
   try {
     const res = await fetch('/api/members', { headers: apiHeaders() })
     if (!res.ok) throw new Error('Failed to load members')
-    return await res.json()
+    const json = await res.json()
+    // normalize: server returns { members: [...] } while older code expected an array
+    if (Array.isArray(json)) return json
+    if (json && Array.isArray(json.members)) return json.members
+    return []
   } catch (e) {
     return getMembers()
   }
@@ -38,7 +42,13 @@ async function fetchSummary() {
   try {
     const res = await fetch('/api/summary', { headers: apiHeaders() })
     if (!res.ok) throw new Error('Failed to load summary')
-    return await res.json()
+    const json = await res.json()
+    // normalize server response { count, totalAmount } -> { totalMembers, totalAmount, commissions }
+    return {
+      totalMembers: json.count ?? json.totalMembers ?? 0,
+      totalAmount: json.totalAmount ?? 0,
+      commissions: json.commissions ?? {}
+    }
   } catch (e) {
     return null
   }
